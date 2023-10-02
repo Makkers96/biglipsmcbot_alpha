@@ -9,7 +9,7 @@ key = os.getenv('google_key')
 #for passing vector store to llm
 from langchain.chains import RetrievalQA
 #for llm
-# from langchain.llms import HuggingFaceHub
+from langchain.llms import HuggingFaceHub
 from langchain.llms import VertexAI
 #for getting data from web
 from langchain.document_loaders import WebBaseLoader
@@ -52,29 +52,27 @@ llm = VertexAI(
 # dictionary with metadata
 webpage_list = ["https://wiki.albiononline.com/wiki/Account_Creation", "https://wiki.albiononline.com/wiki/Achievements", "https://wiki.albiononline.com/wiki/Premium_Features", "https://wiki.albiononline.com/wiki/Gold", "https://wiki.albiononline.com/wiki/New_Player_FAQ"]
 
-# # setting up so that it does 3 webpages at a time.
-# batch_size = 3
+#initialize our vectordb
+vectordb = Chroma(persist_directory='./persist_directory_data', embedding_function=embeddings)
+
+# # setting up so that it does n webpages at a time.
+# batch_size = 2
 # for i in range(0, len(webpage_list), batch_size):
 #     current_webpage_batch = webpage_list[i:i+batch_size]
 
-web_documents = []
 for url in webpage_list:
     loader = WebBaseLoader(url)
     web_doc = loader.load()
-    web_documents.extend(web_doc)
 
-# splitting that doc into chunks and storing that split doc into variable split_doc
-split_doc = text_splitter_r.split_documents(web_documents)
+    # splitting that doc into chunks and storing that split doc into variable split_doc
+    split_doc = text_splitter_r.split_documents(web_doc)
 
-# storing embeddings into vectorstore variable called vectordb
-vectordb = Chroma.from_documents(
-    documents=split_doc,
-    embedding=embeddings,
-    persist_directory='./persist_directory_data',
-)
+    # storing embeddings into vectorstore variable called vectordb
+    vectordb.add_documents(split_doc)
 
-# clear any persisting data out
-del split_doc
+    # clear old data out
+    del split_doc
+
 
 
 
@@ -97,7 +95,8 @@ qa_chain = RetrievalQA.from_chain_type(
 
 
 def run_llm(question):
-    answer = qa_chain({"query": question})
+    dict_answer = qa_chain({"query": question})
+    answer = dict_answer['result']
     return answer
 
 
