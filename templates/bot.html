@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Big Lips McBot</title>
+    <style>
+        #chatbox {
+            justify-content: center;
+            align-items: center;
+            width: 600px;
+            height: 800px;
+            border: 1px solid black;
+            overflow: auto;
+        }
+        #userInput {
+            width: 300px;
+        }
+    </style>
+</head>
+<body>
+    <div id="chatbox">
+        {% for message in messages %}
+            <p><strong>{{ message['sender'] }}:</strong> {{ message['message'] }}</p>
+        {% endfor %}
+    </div>
+    <form action="/bot" method="post">
+        <input id="user_input" name="user_input" placeholder="Type your message here..." required/>
+        <button value="Submit">Send</button>
+    </form>
+</body>
+</html>
